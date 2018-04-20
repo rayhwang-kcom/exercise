@@ -1,42 +1,44 @@
 #!/usr/bin/python3
 """Run an interactive shell, users can view and edit a phone book and then save it to file."""
 class Person:
-    """Entry in phonebook able tyo store and display information"""
-    def __init__(self, name, hnumber, mnumber):
+    """Entry in phonebook able to store and display information"""
+    def __init__(self, name, home_number, mobile_number):
         self.name = name
-        self.hnumber = hnumber
-        self.mnumber = mnumber
+        self.home_number = home_number
+        self.mobile_number = mobile_number
 
     def display(self):
         """Print stored information to screen."""
         print("Name: %s" % (self.name))
-        print("Home Number: %s" % (self.hnumber))
-        print("Mobile Number: %s" % (self.mnumber))
+        print("Home Number: %s" % (self.home_number))
+        print("Mobile Number: %s" % (self.mobile_number))
 
     def edit(self, new_name):
         """Request user input and use it to edit entry details"""
-        if new_name != "":
+        if new_name:
             self.name = new_name
         else:
             print("No changes will be made to the entry name")
-        print("Current entry home number:")
-        print(self.hnumber)
-        print("Enter new home number: (leave blank to remain same)")
-        new_hnumber = input("")
-        if new_hnumber != "":
-            self.hnumber = new_hnumber
-        else:
-            print("No changes will be made to home phone number")
-        print("Current entry mobile number:")
-        print(self.mnumber)
-        print("Enter new mobile number: (leave blank to remain same)")
-        new_mnumber = input("")
-        if new_mnumber != "":
-            self.mnumber = new_mnumber
-        else:
-            print("No changes will be made to mobile phone number")
+        self.edit_number("mobile")
+        self.edit_number("home")
         print("Revised entry:")
         self.display()
+
+    def edit_number(self, numtype):
+        """Take input from user and edit the appropriate number."""
+        print("Current entry %s number:" % (numtype))
+        if numtype == "mobile":
+            print(self.mobile_number)
+        else:
+            print(self.home_number)
+        new_number = input("Enter new %s number: (leave blank to remain same)\n" % (numtype))
+        if new_number:
+            if numtype == "mobile":
+                self.mobile_number = new_number
+            else:
+                self.home_number = new_number
+        else:
+            print("No changes will be made to %s phone number" % (numtype))
 
 class Book:
     """Stores list of Person objects, contains methods to manipulate and view that list."""
@@ -52,13 +54,11 @@ class Book:
         for i in self.people:
             i.display()
             print("")
-        print("---End of Fonbuk---")
-        print("")
+        print("---End of Fonbuk---\n")
 
     def search(self):
         """Request criteria from user, iterate through all entries and display matching results."""
-        print("Enter part or whole of entry name:")
-        search = input("")
+        search = input("Enter part or whole of entry name:\n")
         count = 0
         for i in self.people:
             if search in i.name:
@@ -69,25 +69,20 @@ class Book:
 
     def man_add_person(self):
         """Request input from user, create new entry based on that then add to phonebook."""
-        print("Enter new entry's name:")
-        new_name = input("")
+        new_name = input("Enter new entry's name:\n")
         if self.check_duplicate(new_name) == 0:
             print("An entry with that name already exists,")
             print("please try again with a different name")
         else:
-            print("Enter new entry's home number:")
-            new_hnumber = input("")
-            print("Enter new entry's mobile number:")
-            new_mnumber = input("")
-            new_person = Person(new_name, new_hnumber, new_mnumber)
-            self.people.append(new_person)
+            new_home_number = input("Enter new entry's home number:\n")
+            new_mobile_number = input("Enter new entry's mobile number:\n")
+            self.people.append(Person(new_name, new_home_number, new_mobile_number))
 
     def delete_person(self):
         """Request input from user, identify then delete appropriate entry."""
-        print("Enter exact name of entry to be deleted")
-        delrow = input("")
+        delrow = input("Enter exact name of entry to be deleted\n")
         index = self.identify_by_name(delrow)
-        if index == "null":
+        if index == "None":
             print("Delete failed! Returning to main menu")
         else:
             print("Deleting %s" % (self.people[index].name))
@@ -95,15 +90,13 @@ class Book:
 
     def edit_person(self):
         """Request input from user, identify entry and then edit it based on further input."""
-        print("Enter exact name of entry to be edited")
-        edited = input("")
+        edited = input("Enter exact name of entry to be edited\n")
         index = self.identify_by_name(edited)
-        if index == "null":
+        if index == "None":
             print("Edit failed! Returning to main menu")
         else:
             print("Current entry Name: %s" % (self.people[index].name))
-            print("Enter new name: (leave blank to remain the same)")
-            new_name = input("")
+            new_name = input("Enter new name: (leave blank to remain the same)\n")
             dupe = self.check_duplicate(new_name)
             if (dupe == 0) & (new_name != self.people[index].name):
                 print("An entry with that name already exists,")
@@ -113,13 +106,11 @@ class Book:
 
     def identify_by_name(self, name):
         """Identify entry then return entry's position in book."""
-        count = 0
-        for i in self.people:
-            if name == i.name:
-                return count
-            count += 1
+        for idx, person in enumerate(self.people):
+            if name == person.name:
+                return idx
         print("No entry found with that name")
-        return "null"
+        return "None"
 
     def check_duplicate(self, name):
         """Check for entrys with the provided name, returns 0 if already exists or 1 otherwise."""
@@ -164,16 +155,14 @@ class Book:
 
     def save_file(self):
         """Save current phonebook entries to a file with name input by user."""
-        print("Please enter name of fonbuk to be saved")
-        filename = input("")
+        filename = input("Please enter name of fonbuk to be saved\n")
         if filename == "":
             filename = "DEFAULTSAVE"
             print("Blank filename has been interpreted as DEFAULTSAVE")
-        file = open(("savefiles/%s" % (filename)), "w")
-        for i in self.people:
-            file = open(("savefiles/%s" % (filename)), "a")
-            file.write("%s,%s,%s\n" % (i.name, i.hnumber, i.mnumber))
-            file.close()
+        with open(("savefiles/%s" % (filename)), "w") as file:
+            for i in self.people:
+                file = open(("savefiles/%s" % (filename)), "a")
+                file.write("%s,%s,%s\n" % (i.name, i.home_number, i.mobile_number))
         print("Successfully saved to file")
 
     def load_file(self):
@@ -193,27 +182,26 @@ class Book:
                 print("File not found, cancelling load")
                 break
             for line in file:
-                name, hnumber, mnumber = line.split(",", 2)
+                name, home_number, mobile_number = line.split(",", 2)
                 if self.check_duplicate(name) == 0:
                     self.clear_buk()
                     print("File contains duplicate names, cancelling load")
                 else:
                     name = name.rstrip()
-                    hnumber = hnumber.rstrip()
-                    mnumber = mnumber.rstrip()
-                    self.auto_add_person(name, hnumber, mnumber)
+                    home_number = home_number.rstrip()
+                    mobile_number = mobile_number.rstrip()
+                    self.auto_add_person(name, home_number, mobile_number)
             file.close()
             print("File sucessfully loaded")
             self.display_self()
             check = "n"
 
-    def auto_add_person(self, new_name, new_hnumber, new_mnumber):
+    def auto_add_person(self, new_name, new_home_number, new_mobile_number):
         """Generate and add user based on provided details."""
         print(new_name)
-        print(new_mnumber)
-        print(new_hnumber)
-        new_person = Person(new_name, new_hnumber, new_mnumber)
-        self.people.append(new_person)
+        print(new_mobile_number)
+        print(new_home_number)
+        self.people.append(Person(new_name, new_home_number, new_mobile_number))
 
     def clear_buk(self):
         """Empty current phone book."""
@@ -269,8 +257,7 @@ class Execute:
 
     def exit(self):
         """Request input from user to check saving of book, then break Loop ending session"""
-        print("Before you leave do you want to save the phone book? (y or n)")
-        save = input("")
+        save = input("Before you leave do you want to save the phone book? (y or n)\n")
         if save == "y" or save == "yes":
             self.book.save_file()
         print("Thank you for using Fonbuk 5000, have a great day!")
